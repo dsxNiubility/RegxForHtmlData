@@ -43,14 +43,80 @@
     
     NSString *content = [html firstMatchWithPattern:pattern];
     
-    NSLog(@"%@",content);
+//    NSLog(@"%@",content);
     
 
     NSString *pattern2 = [NSString stringWithFormat:@"<li><a href=\"(.*?)\">(.*?)</a>\\((.*?)\\)</li>"];
     
     NSArray *array = [content matchesWithPattern:pattern2 keys:@[@"url",@"title",@"count"]];
     
-    NSLog(@"%@",array);
+    for (NSDictionary *dict in array) {
+        [self spider2WithDict:dict];
+        
+        // 第一个就断掉
+        break;
+    }
     
+//    NSLog(@"%@", array);
+}
+
+- (void)spider2WithDict:(NSDictionary *)dictionary
+{
+    NSString *urlstr = [NSString stringWithFormat:@"%@%@",kBaseURL,dictionary[@"url"]];
+    
+    NSURL *url = [NSURL URLWithString:urlstr];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    NSError *error = nil;
+    
+    NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
+    
+    if (error) {
+        NSLog(@"%@",error.localizedDescription);
+    }
+    
+    NSString *html = [NSString UTF8StringWithHZGB2312Data:data];
+    
+    NSString *pattern = [NSString stringWithFormat:@"<div class=\"listpage_content\">.*?<ul>(.*?)</ul>"];
+    
+    NSString *content = [html firstMatchWithPattern:pattern];
+    
+    NSString *pattern2 = [NSString stringWithFormat:@"<li><a href=\"(.*?)\" title=\".*?\">(.*?)</a></li>"];
+    
+    NSArray *array = [content matchesWithPattern:pattern2 keys:@[@"url",@"title"]];
+    
+//    NSLog(@"%@",array);
+    
+    for (NSDictionary *dict in array) {
+        [self spider3WithDict:dict];
+        
+        [NSThread sleepForTimeInterval:0.2];
+    }
+}
+
+- (void)spider3WithDict:(NSDictionary *)dictionary
+{
+    NSString *urlstr = [NSString stringWithFormat:@"%@%@",kBaseURL,dictionary[@"url"]];
+    
+    NSURL *url = [NSURL URLWithString:urlstr];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    NSError *error = nil;
+    
+    NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
+    
+    if (error) {
+        NSLog(@"%@",error.localizedDescription);
+    }
+    
+    NSString *html = [NSString UTF8StringWithHZGB2312Data:data];
+    
+    NSString *pattern = [NSString stringWithFormat:@"<dd>(.*?)</dd>"];
+    
+    NSString *content = [html firstMatchWithPattern:pattern];
+    
+    content = [content stringByReplacingOccurrencesOfString:@"<br />" withString:@"\n"];
+    
+    NSLog(@"%@",content);
 }
 @end
