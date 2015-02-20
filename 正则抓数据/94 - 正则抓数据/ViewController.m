@@ -8,20 +8,49 @@
 
 #import "ViewController.h"
 
+#define kBaseURL        @"http://zhougongjiemeng.1518.com/"
 @interface ViewController ()
 
 @end
 
 @implementation ViewController
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+/**
+ 抓数据是偷东西，要准确，顺序，所有方法都用同步的
+ */
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [self spider];
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
+- (void)spider
+{
+    NSURL *url = [NSURL URLWithString:kBaseURL];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    
+    NSError *error = nil;
+    
+    NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
+    
+    if (error) {
+        NSLog(@"%@",error.localizedDescription);
+    }
+    
+    NSString *html = [NSString UTF8StringWithHZGB2312Data:data];
+    
+    NSString *pattern = [NSString stringWithFormat:@"<ul class=\"cs_list\">(.*?)</ul>"];
+    
+    NSString *content = [html firstMatchWithPattern:pattern];
+    
+    NSLog(@"%@",content);
+    
 
+    NSString *pattern2 = [NSString stringWithFormat:@"<li><a href=\"(.*?)\">(.*?)</a>\\((.*?)\\)</li>"];
+    
+    NSArray *array = [content matchesWithPattern:pattern2 keys:@[@"url",@"title",@"count"]];
+    
+    NSLog(@"%@",array);
+    
+}
 @end
